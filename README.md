@@ -324,5 +324,5 @@ Seluruh source code website ada pada folder `/Website Kelompok` repository ini.
 
 # 6. 🎬 Dokumentasi Video Pengerjaan
 **Link Video YouTube:**  
-[![Watch the video](https://img.youtube.com/vi/pmUAsqkCUTE?si=f-hygbE5qq1e8EzF/maxresdefault.jpg)](https://www.youtube.com/embed/pmUAsqkCUTE?si=f-hygbE5qq1e8EzF)
+[![Thumbnail Video Pengerjaan](https://img.youtube.com/vi/1-Hwf75BWtT3jimJV1/0.jpg)](https://www.youtube.com/watch?v=Hwf75BWtT3jimJV1)
 
