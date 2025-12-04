@@ -1,1 +1,230 @@
-# LaporanKelompok
+# 💻 LAPORAN PROYEK: INSTALLASI WEB SERVER NGINX, PHP 8.4, DAN SSL DI DEBIAN TRIXIE
+
+**Proyek:** Instalasi dan Konfigurasi Nginx + PHP 8.4 + SSL Self-Signed
+
+Proyek ini dibuat untuk memenuhi tugas mata pelajaran **Administrasi Sistem Jaringan (ASJ)**, yang merupakan salah satu elemen Capaian Pembelajaran Konsentrasi Keahlian Teknik Komputer dan Jaringan (**CP KKTKJ**) pada program TJKT. Proyek ini berfokus pada implementasi layanan Web Server, konfigurasi PHP, dan pengamanan koneksi menggunakan SSL/HTTPS.
+
+---
+
+## 1. 👥 Informasi Kelompok dan Spesifikasi Lingkungan Praktik
+
+### 1.1. Informasi Kelompok
+
+| Peran | Nama Lengkap | Kelas |
+| :--- | :--- | :--- |
+| **Ketua Kelompok** | Marcellino Kresna Pratama | XI TKJ 1 |
+| Anggota 1 | Siti Zahrotussita | XI TKJ 1 |
+| Anggota 2 | Karina Mega | XI TKJ 1 |
+| Anggota 3 | Aldi Mulyana | XI TKJ 1 |
+| **Nama Sekolah/Institusi** | SMKN 1 Soreang | |
+
+---
+
+### 1.2. Spesifikasi Alat dan Bahan (Host) 🛠️
+
+| Komponen | Deskripsi / Versi |
+| :--- | :--- |
+| **Virtualisasi** |  VMware Workstation 17 Pro |
+| **Sistem Operasi Host** | Windows 11 |
+| **RAM Host (Minimal)** | 8 GB |
+| **CPU Host** | Intel(R) Celeron(R) N4020 CPU @ 1.10GHz |
+
+---
+
+### 1.3. Spesifikasi Server Virtual (VM) 🖥️
+
+| Spesifikasi | Detail |
+| :--- | :--- |
+| **Sistem Operasi Tamu (Guest OS)** | Debian Trixie (12.x) |
+| **Alamat IP Server** | `[IP Server]` |
+| **RAM VM** | 2 GB |
+| **vCPU** | 2 Core |
+| **Web Server yang Dipilih** | **Nginx** |
+| **Versi PHP yang Dipakai** | **PHP-FPM 8.4** |
+
+---
+
+# 2. 📝 Dokumentasi Teknis dan Langkah-Langkah Pengerjaan
+
+## 2.1. Persiapan Dasar Debian Trixie
+
+1. Update dan upgrade sistem:
+```bash
+apt update && apt upgrade -y
+```
+
+2. Install tools tambahan:
+```bash
+apt install sudo curl nano unzip -y
+```
+
+3. Cek koneksi internet dan IP server:
+```bash
+ip a
+ping google.com
+```
+
+---
+
+## 2.2. Instalasi dan Konfigurasi Web Server Nginx 🌐
+
+### 🔧 Instalasi Nginx
+```bash
+apt install nginx -y
+```
+
+### 🔧 Mengecek status Nginx
+```bash
+systemctl status nginx
+```
+
+### 🔧 Mengaktifkan Nginx saat boot
+```bash
+systemctl enable nginx
+```
+
+### 🔧 Menguji Web Server dari browser
+Buka:
+
+```
+http://[IP Server]
+```
+
+Jika halaman default Nginx muncul, berarti server berjalan normal.
+
+---
+
+## 2.3. Instalasi dan Konfigurasi PHP-FPM 8.4 🐘
+
+### 🔧 Menambahkan repository PHP 8.4
+```bash
+apt install ca-certificates apt-transport-https -y
+curl -sSL https://packages.sury.org/php/README.txt | bash -x
+```
+
+### 🔧 Instalasi PHP 8.4 + modul
+```bash
+apt install php8.4 php8.4-fpm php8.4-mysql php8.4-cli -y
+```
+
+### 🔧 Mengecek status PHP-FPM
+```bash
+systemctl status php8.4-fpm
+```
+
+---
+
+## 2.4. Menghubungkan Nginx dengan PHP-FPM
+
+Edit konfigurasi server block:
+```bash
+nano /etc/nginx/sites-available/default
+```
+
+Ubah bagian berikut:
+```
+index index.php index.html index.nginx-debian.html;
+
+location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+}
+```
+
+Simpan, lalu restart Nginx:
+```bash
+systemctl restart nginx
+```
+
+### 🔧 Test PHP
+Buat file:
+```bash
+nano /var/www/html/info.php
+```
+
+Isi:
+```php
+<?php phpinfo(); ?>
+```
+
+Akses:
+```
+http://[IP Server]/info.php
+```
+
+---
+
+## 2.5. Konfigurasi SSL Self-Signed 🔒
+
+### 🔧 Membuat folder SSL
+```bash
+mkdir /etc/nginx/ssl
+```
+
+### 🔧 Membuat certificate & private key
+```bash
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+-keyout /etc/nginx/ssl/server.key \
+-out /etc/nginx/ssl/server.crt
+```
+
+### 🔧 Edit server block SSL
+```bash
+nano /etc/nginx/sites-available/default
+```
+
+Tambahkan:
+
+```
+listen 443 ssl;
+
+ssl_certificate /etc/nginx/ssl/server.crt;
+ssl_certificate_key /etc/nginx/ssl/server.key;
+```
+
+Restart Nginx:
+```bash
+systemctl restart nginx
+```
+
+Akses:
+
+```
+https://[IP Server]
+```
+
+---
+
+# 3. 📊 Analisis Web Server
+
+| Aspek | Kelebihan (Nginx) 👍 | Kekurangan (Nginx) 👎 |
+| :--- | :--- | :--- |
+| **Performa & Kecepatan** | Ringan, cepat, scalable | Sedikit lebih sulit untuk pemula |
+| **Kemudahan Konfigurasi** | File konfigurasi rapi & modular | Error sering karena salah indentasi |
+| **Fitur & Modularitas** | Mendukung reverse proxy & load balancing | Modul internal lebih sedikit dibanding Apache |
+
+---
+
+# 4. 🧠 Refleksi Proyek
+
+## 4.1. Kesan ✨
+[Pusing Rudet tapi menyenangkan, tapi kita bisa tau cara menggunakan nginx, buat website di Linux.
+
+## 4.2. Kendala dan Solusi 💡
+
+| Kendala | Solusi |
+| :--- | :--- |
+| [Contoh: Nginx tidak terbaca] | [Solusi: Restart service dan cek sintaks] |
+| [Contoh: SSL error] | [Solusi: Perbaiki path certificate] |
+
+---
+
+# 5. 📂 Dokumentasi Konten Website
+Seluruh source code website ada pada folder `/html` repository ini.
+
+---
+
+# 6. 🎬 Dokumentasi Video Pengerjaan
+**Link Video YouTube:**  
+`[Masukkan Link Video]`
+
