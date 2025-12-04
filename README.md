@@ -53,12 +53,7 @@ Proyek ini dibuat untuk memenuhi tugas mata pelajaran **Administrasi Sistem Jari
 apt update && apt upgrade -y
 ```
 
-2. Install tools tambahan:
-```bash
-apt install sudo curl nano unzip -y
-```
-
-3. Cek koneksi internet dan IP server:
+2. Cek koneksi internet dan IP server:
 ```bash
 ip a
 ping google.com
@@ -316,11 +311,11 @@ https://[IP Server]
 
 | Kendala | Solusi |
 | :--- | :--- |
-| [Nginx tidak terbaca] | [Solusi: Restart service dan cek sintaks] |
-| [SSL error] | [Solusi: Perbaiki path certificate] |
-| [Gagal install apt] | [Solusi: Cek Konfigurasi pada repository] |
-| [Gagal saat restart network service] | [Solusi: Cek Konfigurasi Network interfaces] |
-| [Gagal menggunakan ssh cmd] | [Solusi: Ubah konfigurasi pada sshd di bagian permitrootlogin menjadi yes] |
+| Nginx tidak terbaca | Restart service dan cek sintaks |
+| SSL error | Perbaiki path certificate |
+| Gagal install apt] | Cek Konfigurasi pada repository |
+| Gagal saat restart network service] | Cek Konfigurasi Network interfaces |
+| Gagal menggunakan ssh cmd | Ubah konfigurasi pada sshd di bagian permitrootlogin menjadi yes |
 
 ---
 
