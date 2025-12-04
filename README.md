@@ -91,8 +91,6 @@ Jika halaman default Nginx muncul, berarti server berjalan normal.
 
 ## 2.3. Instalasi dan Konfigurasi PHP-FPM 8.4 🐘
 
-### 🔧 Menambahkan repository PHP 8.4
-
 ### 🔧 Instalasi PHP 8.4 + modul
 ```bash
 apt install php8.4 php8.4-fpm php8.4-mysql php8.4-cli -y
