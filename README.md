@@ -36,7 +36,7 @@ Proyek ini dibuat untuk memenuhi tugas mata pelajaran **Administrasi Sistem Jari
 | Spesifikasi | Detail |
 | :--- | :--- |
 | **Sistem Operasi Tamu (Guest OS)** | Debian Trixie (12.x) |
-| **Alamat IP Server** | `[IP Server]` |
+| **Alamat IP Server** | `10.190.72.203` |
 | **RAM VM** | 2 GB |
 | **vCPU** | 2 Core |
 | **Web Server yang Dipilih** | **Nginx** |
@@ -324,5 +324,5 @@ Seluruh source code website ada pada folder `/Website Kelompok` repository ini.
 
 # 6. 🎬 Dokumentasi Video Pengerjaan
 **Link Video YouTube:**  
-`[Masukkan Link Video]`
+`https://youtu.be/pmUAsqkCUTE`
 
