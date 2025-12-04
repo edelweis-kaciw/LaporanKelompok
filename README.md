@@ -1,4 +1,4 @@
-# 💻 LAPORAN PROYEK: INSTALLASI WEB SERVER NGINX, PHP 8.4, DAN SSL DI DEBIAN TRIXIE
+# 💻 INSTALLASI WEB SERVER NGINX, PHP 8.4, DAN SSL DI DEBIAN TRIXIE
 
 **Proyek:** Instalasi dan Konfigurasi Nginx + PHP 8.4 + SSL Self-Signed
 
@@ -97,10 +97,6 @@ Jika halaman default Nginx muncul, berarti server berjalan normal.
 ## 2.3. Instalasi dan Konfigurasi PHP-FPM 8.4 🐘
 
 ### 🔧 Menambahkan repository PHP 8.4
-```bash
-apt install ca-certificates apt-transport-https -y
-curl -sSL https://packages.sury.org/php/README.txt | bash -x
-```
 
 ### 🔧 Instalasi PHP 8.4 + modul
 ```bash
@@ -121,13 +117,48 @@ Edit konfigurasi server block:
 nano /etc/nginx/sites-available/default
 ```
 
-Ubah bagian berikut:
+Ubah atau sesuaikan bagian berikut menjadi:
 ```
-index index.php index.html index.nginx-debian.html;
+server {
+    listen 80 default_server;          # Dengarkan koneksi HTTP di port 80 (standar web)
+    listen [::]:80 default_server;     # Dukungan untuk IPv6
 
-location ~ \.php$ {
-    include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+    root /var/www/html;                # Folder utama tempat file website disimpan
+    index index.php index.html;        # Urutan file index yang akan dicari pertama kali
+
+    server_name _;                     # "_" artinya menerima semua nama domain/host
+
+    # Bagian utama untuk menangani request ke website
+    location / {
+        # Coba tampilkan file sesuai permintaan
+        # Jika tidak ada, coba foldernya
+        # Jika tetap tidak ada, arahkan ke index.php (penting untuk WordPress, Moodle, dll.)
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Bagian untuk menjalankan file PHP
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;             # Include konfigurasi standar PHP-FPM
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;    # Jalur socket PHP-FPM versi 8.4
+
+        # Beritahu PHP file mana yang harus dijalankan
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;                        # Include parameter tambahan untuk PHP
+    }
+
+    # Bagian untuk file statis (gambar, CSS, JS, font, dll.)
+    # Dikasih aturan cache supaya website lebih cepat dibuka
+    location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|eot|ttf|svg|mp4)$ {
+        expires 6M;             # Browser boleh menyimpan file ini 6 bulan
+        access_log off;         # Jangan dicatat di log akses (hemat space/log)
+        log_not_found off;      # Jangan catat kalau file statis tidak ditemukan
+    }
+
+    # Lindungi file .htaccess atau file tersembunyi (.ht*)
+    # Biasanya digunakan Apache, tapi tetap diblokir di Nginx agar aman
+    location ~ /\.ht {
+        deny all;
+    }
 }
 ```
 
@@ -176,10 +207,81 @@ nano /etc/nginx/sites-available/default
 Tambahkan:
 
 ```
-listen 443 ssl;
+server {
+    listen 80 default_server;          # Dengarkan koneksi HTTP di port 80
+    listen [::]:80 default_server;     # Dukungan untuk IPv6
 
-ssl_certificate /etc/nginx/ssl/server.crt;
-ssl_certificate_key /etc/nginx/ssl/server.key;
+    root /var/www/html;                # Folder utama untuk file website
+    index index.php index.html;        # File index yang akan dicari pertama
+
+    server_name _;                     # "_" artinya menerima semua nama domain/host
+
+    # Bagian utama untuk menangani request
+    location / {
+        # Coba tampilkan file/ folder sesuai permintaan
+        # Jika tidak ada, teruskan ke index.php (penting untuk WordPress/Moodle)
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Bagian untuk menjalankan file PHP
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock; # Jalur socket PHP-FPM
+
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Lindungi file tersembunyi (.htaccess, .git, .env, dll.)
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    # Atur caching untuk file statis (gambar, css, js, font, video)
+    location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|eot|ttf|svg|mp4)$ {
+        expires 6M;             # Simpan cache selama 6 bulan
+        access_log off;         # Tidak perlu dicatat di access log
+        log_not_found off;      # Jika file tidak ada, jangan penuhkan log
+    }
+}
+
+# ==========================
+# Konfigurasi HTTPS (port 443, SSL/TLS)
+# ==========================
+server {
+    listen 443 ssl default_server;      # Dengarkan koneksi HTTPS di port 443
+    listen [::]:443 ssl default_server; # Dukungan untuk IPv6
+
+    root /var/www/html;                 # Sama seperti HTTP
+    index index.php index.html;
+    server_name _;
+
+    # Lokasi sertifikat SSL self-signed
+    ssl_certificate /etc/ssl/nginx/selfsigned.crt;
+    ssl_certificate_key /etc/ssl/nginx/selfsigned.key;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|eot|ttf|svg|mp4)$ {
+        expires 6M;
+        access_log off;
+        log_not_found off;
+    }
+}
 ```
 
 Restart Nginx:
@@ -214,13 +316,16 @@ https://[IP Server]
 
 | Kendala | Solusi |
 | :--- | :--- |
-| [Contoh: Nginx tidak terbaca] | [Solusi: Restart service dan cek sintaks] |
-| [Contoh: SSL error] | [Solusi: Perbaiki path certificate] |
+| [Nginx tidak terbaca] | [Solusi: Restart service dan cek sintaks] |
+| [SSL error] | [Solusi: Perbaiki path certificate] |
+| [Gagal install apt] | [Solusi: Cek Konfigurasi pada repository] |
+| [Gagal saat restart network service] | [Solusi: Cek Konfigurasi Network interfaces] |
+| [Gagal menggunakan ssh cmd] | [Solusi: Ubah konfigurasi pada sshd di bagian permitrootlogin menjadi yes] |
 
 ---
 
 # 5. 📂 Dokumentasi Konten Website
-Seluruh source code website ada pada folder `/html` repository ini.
+Seluruh source code website ada pada folder `/Website Kelompok` repository ini.
 
 ---
 
